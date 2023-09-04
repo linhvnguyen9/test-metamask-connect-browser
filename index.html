@@ -23,6 +23,7 @@
     
         // Connect to MetaMask
         async function connectWallet() {
+            // For modern Dapp Browsers with window.ethereum
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
                 try {
@@ -33,10 +34,21 @@
                 } catch (error) {
                     console.error("User denied account access");
                 }
-            } else if (window.web3) {
+            }
+            // For older Dapp Browsers with injected web3 instance
+            else if (window.web3) {
                 web3 = new Web3(window.web3.currentProvider);
-            } else {
-                console.error('MetaMask not found');
+                const accounts = await web3.eth.getAccounts();
+                if (accounts && accounts.length > 0) {
+                    const connectedAddress = accounts[0];
+                    document.getElementById('connectedAddress').textContent = "Connected Address: " + connectedAddress;
+                    return connectedAddress;
+                } else {
+                    console.error("No accounts found on injected web3 provider");
+                }
+            } 
+            else {
+                console.error('No MetaMask or web3 instance found');
             }
         }
     
