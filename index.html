@@ -17,8 +17,32 @@
     <p id="connectedAddress">Connected Address: Not connected</p>
     <button onclick="sendBNB()">Send BNB</button>
     <button onclick="connectWallet()">Connect to MetaMask</button>
+    <label for="tokenAmount">USDC Amount:</label>
+    <input type="number" id="tokenAmount" placeholder="Enter amount of USDC to send">
+    <br>
+    <button onclick="sendUSDC()">Send USDC</button>
+
 
     <script>
+        const erc20ABI = [
+            {
+            "constant": false,
+            "inputs": [
+                {
+                "name": "_to",
+                "type": "address"
+                },
+                {
+                "name": "_value",
+                "type": "uint256"
+                }
+            ],
+            "name": "transfer",
+            "outputs": [],
+            "type": "function"
+            }
+        ];
+
         let web3;
     
         // Connect to MetaMask
@@ -69,6 +93,32 @@
                 alert('Transaction hash: ' + hash);
             }).on('error', console.error);
         }
+
+        async function sendUSDC() {
+            if (!web3) {
+                console.error("Web3 not initialized. Connect to MetaMask first.");
+                return;
+            }
+
+            const tokenContractAddress = "0x64544969ed7EBf5f083679233325356EbE738930";
+            const receiverAddress = document.getElementById('address').value;
+            const tokenAmount = document.getElementById('tokenAmount').value;
+
+            // Convert the input amount to its base unit. For USDC, it's 6 decimals.
+            const baseAmount = web3.utils.toBN(Math.round(tokenAmount * 1e6)).toString();
+
+            const tokenContract = new web3.eth.Contract(erc20ABI, tokenContractAddress);
+            
+            const accounts = await web3.eth.getAccounts();
+            const senderAddress = accounts[0];
+
+            tokenContract.methods.transfer(receiverAddress, baseAmount).send({ from: senderAddress })
+            .on('transactionHash', function(hash){
+                alert('Transaction hash: ' + hash);
+            })
+            .on('error', console.error);
+        }
+
     </script>
 </body>
 </html>
